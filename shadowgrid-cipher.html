@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHADOWGRID CIPHER</title>
+<link rel="icon" type="image/png" href="assets/hacker.png">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00ff88;
+    --dim-green: #00cc66;
+    --dark-green: #003322;
+    --bg: #030c07;
+    --panel: #070f0a;
+    --border: #0a3320;
+    --red: #ff3355;
+    --amber: #ffaa00;
+    --text: #7affbb;
+    --dim: #2a6644;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* Scanline effect */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,136,0.015) 2px,
+      rgba(0,255,136,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* CRT flicker */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.6) 100%);
+    pointer-events: none;
+    z-index: 9998;
+    animation: flicker 8s infinite;
+  }
+
+  @keyframes flicker {
+    0%, 96%, 98%, 100% { opacity: 1; }
+    97% { opacity: 0.92; }
+    97.5% { opacity: 1; }
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 40%;
+    height: 1px;
+    background: var(--green);
+    box-shadow: 0 0 12px var(--green);
+    animation: scanline-x 4s linear infinite;
+  }
+
+  @keyframes scanline-x {
+    0% { left: 0; width: 40%; opacity: 1; }
+    60% { left: 60%; width: 40%; opacity: 1; }
+    100% { left: 100%; width: 0; opacity: 0; }
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 6px;
+    color: var(--green);
+    text-shadow: 0 0 20px var(--green), 0 0 40px rgba(0,255,136,0.3);
+    text-transform: uppercase;
+  }
+
+  .logo span { color: var(--dim); }
+
+  .status-bar {
+    display: flex;
+    gap: 20px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--dim);
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: pulse 2s infinite;
+    margin-right: 6px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    display: grid;
+    gap: 30px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    opacity: 0.5;
+  }
+
+  .panel-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--dim-green);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+  }
+
+  .panel-header .bracket {
+    color: var(--dim);
+  }
+
+  .panel-body { padding: 24px; }
+
+  /* Config row */
+  .config-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--dim);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    background: #040d08;
+    border: 1px solid var(--border);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: 1px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input:focus, textarea:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 12px rgba(0,255,136,0.15), inset 0 0 8px rgba(0,255,136,0.05);
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* Grid display */
+  .grid-section {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 30px;
+    align-items: start;
+  }
+
+  .cipher-grid {
+    display: grid;
+    grid-template-columns: auto repeat(5, 44px);
+    grid-template-rows: auto repeat(5, 44px);
+    gap: 2px;
+    font-size: 13px;
+  }
+
+  .grid-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dim);
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+
+  .grid-cell {
+    background: var(--dark-green);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: var(--text);
+    position: relative;
+    transition: all 0.15s;
+  }
+
+  .grid-cell.keyword-letter {
+    background: rgba(0,255,136,0.08);
+    border-color: rgba(0,255,136,0.3);
+    color: var(--green);
+    text-shadow: 0 0 8px rgba(0,255,136,0.5);
+  }
+
+  .grid-cell.highlight {
+    background: rgba(0,255,136,0.2) !important;
+    border-color: var(--green) !important;
+    color: var(--green) !important;
+    box-shadow: 0 0 12px rgba(0,255,136,0.3);
+    transform: scale(1.08);
+    z-index: 2;
+  }
+
+  .grid-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dim);
+    font-size: 11px;
+    width: 20px;
+    letter-spacing: 2px;
+  }
+
+  .conversion-table {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .conv-item {
+    background: var(--dark-green);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 13px;
+  }
+
+  .conv-arrow { color: var(--dim); }
+  .conv-num { color: var(--amber); }
+  .conv-letter { color: var(--green); }
+
+  /* Mode tabs */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    padding: 12px 28px;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--green);
+    border-bottom-color: var(--green);
+    text-shadow: 0 0 10px rgba(0,255,136,0.5);
+  }
+
+  /* Action button */
+  .btn {
+    background: transparent;
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    padding: 12px 32px;
+    cursor: pointer;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--green);
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+    opacity: 0.1;
+  }
+
+  .btn:hover::before { transform: translateX(0); }
+  .btn:hover {
+    box-shadow: 0 0 20px rgba(0,255,136,0.3);
+    text-shadow: 0 0 8px var(--green);
+  }
+
+  .btn:active { transform: scale(0.98); }
+
+  .btn.danger {
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .btn.danger::before { background: var(--red); }
+  .btn.danger:hover { box-shadow: 0 0 20px rgba(255,51,85,0.3); }
+
+  /* Output */
+  .output-box {
+    background: #020804;
+    border: 1px solid var(--border);
+    padding: 20px;
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: var(--green);
+    text-shadow: 0 0 8px rgba(0,255,136,0.4);
+    word-break: break-all;
+    min-height: 60px;
+    position: relative;
+    line-height: 1.8;
+  }
+
+  .output-box.empty { color: var(--dim); font-size: 13px; letter-spacing: 1px; }
+
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--dark-green);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { color: var(--green); border-color: var(--green); }
+
+  /* Steps trace */
+  .steps-trace {
+    display: none;
+    gap: 0;
+    flex-direction: column;
+    margin-top: 20px;
+    border: 1px solid var(--border);
+  }
+
+  .steps-trace.visible { display: flex; }
+
+  .step-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .step-row:last-child { border-bottom: none; }
+
+  .step-label {
+    padding: 10px 14px;
+    background: var(--dark-green);
+    color: var(--dim);
+    letter-spacing: 2px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid var(--border);
+  }
+
+  .step-value {
+    padding: 10px 14px;
+    letter-spacing: 1.5px;
+    color: var(--text);
+    word-break: break-all;
+  }
+
+  .noise-pair { color: var(--red); opacity: 0.7; }
+  .real-pair { color: var(--green); }
+
+  /* Action row */
+  .action-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .show-steps-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    cursor: pointer;
+    margin-left: auto;
+  }
+
+  .toggle {
+    width: 32px;
+    height: 16px;
+    background: var(--dark-green);
+    border: 1px solid var(--border);
+    position: relative;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    background: var(--dim);
+    transition: all 0.2s;
+  }
+
+  .toggle.on { border-color: var(--green); }
+  .toggle.on::after { left: 18px; background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+  /* Grid info panel */
+  .grid-info {
+    font-size: 11px;
+    line-height: 2;
+    color: var(--dim);
+  }
+
+  .grid-info strong { color: var(--text); }
+
+  /* Error */
+  .error-msg {
+    color: var(--red);
+    font-size: 12px;
+    letter-spacing: 1px;
+    margin-top: 8px;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+  /* Glitch title animation */
+  @keyframes glitch {
+    0% { clip-path: inset(0 0 95% 0); transform: translate(-2px, 0); }
+    20% { clip-path: inset(30% 0 50% 0); transform: translate(2px, 0); }
+    40% { clip-path: inset(60% 0 20% 0); transform: translate(-1px, 0); }
+    60% { clip-path: inset(80% 0 5% 0); transform: translate(1px, 0); }
+    80% { clip-path: inset(10% 0 75% 0); transform: translate(-2px, 0); }
+    100% { clip-path: inset(0 0 95% 0); transform: translate(0, 0); }
+  }
+
+  @media (max-width: 700px) {
+    .config-row { grid-template-columns: 1fr; }
+    .grid-section { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SHADOW<span>GRID</span> CIPHER</div>
+  <div class="status-bar">
+    <span><span class="status-dot"></span>SYSTEM ONLINE</span>
+    <span>PROTOCOL: ACTIVE</span>
+    <span id="clock">--:--:--</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONFIG PANEL -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="bracket">[</span> CIPHER CONFIGURATION <span class="bracket">]</span>
+    </div>
+    <div class="panel-body">
+      <div class="config-row">
+        <div>
+          <label>SECRET KEYWORD</label>
+          <input type="text" id="keyword" placeholder="PHANTOM" value="PHANTOM" autocomplete="off" spellcheck="false">
+          <div class="error-msg" id="keyword-error">KEYWORD REQUIRED</div>
+        </div>
+        <div>
+          <label>KEYWORD (DEDUPLICATED)</label>
+          <input type="text" id="keyword-clean" readonly placeholder="—" style="opacity:0.7">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRID PANEL -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="bracket">[</span> CIPHER GRID — 5×5 POLYBIUS SQUARE <span class="bracket">]</span>
+    </div>
+    <div class="panel-body">
+      <div class="grid-section">
+        <div>
+          <div id="cipher-grid" class="cipher-grid"></div>
+          <div style="margin-top:18px;">
+            <label style="margin-bottom:10px;">NUMBER → LETTER SUBSTITUTION</label>
+            <div class="conversion-table">
+              <div class="conv-item"><span class="conv-num">1</span><span class="conv-arrow">→</span><span class="conv-letter">K</span></div>
+              <div class="conv-item"><span class="conv-num">2</span><span class="conv-arrow">→</span><span class="conv-letter">R</span></div>
+              <div class="conv-item"><span class="conv-num">3</span><span class="conv-arrow">→</span><span class="conv-letter">X</span></div>
+              <div class="conv-item"><span class="conv-num">4</span><span class="conv-arrow">→</span><span class="conv-letter">M</span></div>
+              <div class="conv-item"><span class="conv-num">5</span><span class="conv-arrow">→</span><span class="conv-letter">Q</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-info" id="grid-info">
+          Build a keyword to generate the grid.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENCRYPT / DECRYPT PANEL -->
+  <div class="panel">
+    <div class="tabs">
+      <button class="tab active" id="tab-enc" onclick="switchTab('enc')">⬡ ENCRYPT</button>
+      <button class="tab" id="tab-dec" onclick="switchTab('dec')">⬡ DECRYPT</button>
+    </div>
+    <div class="panel-body">
+      <div id="section-enc">
+        <label>PLAINTEXT MESSAGE</label>
+        <textarea id="plaintext" placeholder="Enter your message..." spellcheck="false"></textarea>
+        <div class="action-row">
+          <button class="btn" onclick="encrypt()">ENCRYPT MESSAGE</button>
+          <button class="btn danger" onclick="clearAll('enc')">CLEAR</button>
+          <label class="show-steps-toggle" onclick="toggleSteps('enc')">
+            SHOW STEPS <div class="toggle" id="toggle-enc"></div>
+          </label>
+        </div>
+        <div class="steps-trace" id="steps-enc"></div>
+        <div style="margin-top:20px;">
+          <label>ENCRYPTED OUTPUT</label>
+          <div class="output-box empty" id="output-enc">
+            — AWAITING INPUT —
+            <button class="copy-btn" onclick="copyOutput('output-enc')" style="display:none">COPY</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="section-dec" style="display:none">
+        <label>CIPHERTEXT MESSAGE</label>
+        <textarea id="ciphertext" placeholder="Enter encrypted message..." spellcheck="false" style="text-transform:uppercase;letter-spacing:2px;"></textarea>
+        <div class="action-row">
+          <button class="btn" onclick="decrypt()">DECRYPT MESSAGE</button>
+          <button class="btn danger" onclick="clearAll('dec')">CLEAR</button>
+          <label class="show-steps-toggle" onclick="toggleSteps('dec')">
+            SHOW STEPS <div class="toggle" id="toggle-dec"></div>
+          </label>
+        </div>
+        <div class="steps-trace" id="steps-dec"></div>
+        <div style="margin-top:20px;">
+          <label>DECRYPTED OUTPUT</label>
+          <div class="output-box empty" id="output-dec">
+            — AWAITING INPUT —
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ===================== CONSTANTS =====================
+const NUM_TO_LETTER = { '1':'K','2':'R','3':'X','4':'M','5':'Q' };
+const LETTER_TO_NUM = { 'K':'1','R':'2','X':'3','M':'4','Q':'5' };
+const NOISE_PAIRS = ['ZZ','AA','BB','CC','DD','EE','FF','GG','HH','II','NN','PP','SS','TT','UU','WW','YY'];
+let noiseIdx = 0;
+
+function getNoisePair() {
+  const p = NOISE_PAIRS[noiseIdx % NOISE_PAIRS.length];
+  noiseIdx++;
+  return p;
+}
+
+// ===================== GRID =====================
+function buildGrid(keyword) {
+  keyword = keyword.toUpperCase().replace(/J/g,'I').replace(/[^A-Z]/g,'');
+  // deduplicate keyword
+  const seen = new Set();
+  let kw = '';
+  for (const c of keyword) {
+    if (!seen.has(c)) { seen.add(c); kw += c; }
+  }
+  // fill with remaining letters
+  const alpha = 'ABCDEFGHIKLMNOPQRSTUVWXYZ'; // no J
+  let grid = kw;
+  for (const c of alpha) {
+    if (!seen.has(c)) { seen.add(c); grid += c; }
+  }
+  return { keyword: kw, letters: grid.slice(0,25) };
+}
+
+function getCoords(letter, gridLetters) {
+  letter = letter.toUpperCase();
+  if (letter === 'J') letter = 'I';
+  const idx = gridLetters.indexOf(letter);
+  if (idx === -1) return null;
+  const row = Math.floor(idx / 5) + 1;
+  const col = (idx % 5) + 1;
+  return { row, col };
+}
+
+function getLetter(row, col, gridLetters) {
+  const idx = (row - 1) * 5 + (col - 1);
+  return gridLetters[idx] || null;
+}
+
+// ===================== RENDER GRID =====================
+function renderGrid(gridData, highlight=[]) {
+  const { keyword, letters } = gridData;
+  const container = document.getElementById('cipher-grid');
+  container.innerHTML = '';
+
+  // corner
+  const corner = document.createElement('div');
+  corner.className = 'grid-header';
+  container.appendChild(corner);
+
+  // col headers
+  for (let c=1;c<=5;c++) {
+    const h = document.createElement('div');
+    h.className = 'grid-header';
+    h.textContent = c;
+    container.appendChild(h);
+  }
+
+  // rows
+  for (let r=1;r<=5;r++) {
+    const rh = document.createElement('div');
+    rh.className = 'grid-row-header';
+    rh.textContent = r;
+    container.appendChild(rh);
+    for (let c=1;c<=5;c++) {
+      const idx = (r-1)*5+(c-1);
+      const letter = letters[idx];
+      const cell = document.createElement('div');
+      cell.className = 'grid-cell';
+      if (keyword.includes(letter)) cell.classList.add('keyword-letter');
+      if (highlight.includes(letter)) cell.classList.add('highlight');
+      cell.textContent = letter === 'I' ? 'I/J' : letter;
+      container.appendChild(cell);
+    }
+  }
+
+  // grid info
+  const info = document.getElementById('grid-info');
+  info.innerHTML = `
+    <strong>KEYWORD:</strong> ${keyword.split('').join(' ')}<br>
+    <strong>GRID ORDER:</strong><br>
+    ${letters.match(/.{1,5}/g).map((row,i)=>`<span style="color:var(--dim)">ROW ${i+1}:</span> ${row.split('').join(' ')}`).join('<br>')}
+    <br><br>
+    <span style="color:var(--dim-green)">■</span> KEYWORD LETTERS<br>
+    <span style="color:var(--dim)">□</span> FILL LETTERS
+  `;
+}
+
+// ===================== KEYWORD INPUT =====================
+document.getElementById('keyword').addEventListener('input', function() {
+  const kw = this.value;
+  if (!kw.trim()) {
+    document.getElementById('keyword-clean').value = '';
+    document.getElementById('cipher-grid').innerHTML = '';
+    document.getElementById('grid-info').innerHTML = 'Build a keyword to generate the grid.';
+    return;
+  }
+  const gridData = buildGrid(kw);
+  document.getElementById('keyword-clean').value = gridData.keyword;
+  renderGrid(gridData);
+});
+
+// ===================== ENCRYPT =====================
+function encrypt() {
+  const kw = document.getElementById('keyword').value.trim();
+  const msg = document.getElementById('plaintext').value.trim();
+  if (!kw) { document.getElementById('keyword-error').classList.add('visible'); return; }
+  document.getElementById('keyword-error').classList.remove('visible');
+  if (!msg) return;
+
+  const gridData = buildGrid(kw);
+  const letters = gridData.letters;
+
+  // Step 1: clean
+  let clean = msg.toUpperCase().replace(/[^A-Z]/g,'');
+  // Step 2: J→I
+  let noJ = clean.replace(/J/g,'I');
+  // Step 3: coordinates
+  const coords = [];
+  const coordLetters = [];
+  for (const c of noJ) {
+    const co = getCoords(c, letters);
+    if (co) { coords.push(`${co.row}${co.col}`); coordLetters.push(c); }
+  }
+  // Step 4: number to letter pairs
+  const letterPairs = coords.map(pair => NUM_TO_LETTER[pair[0]] + NUM_TO_LETTER[pair[1]]);
+  // Step 5: insert noise (every 3rd pair)
+  noiseIdx = 0;
+  const withNoise = [];
+  const noisePositions = [];
+  let realCount = 0;
+  let insertAfter = 2; // after every 2 reals, insert 1 noise (positions 3,6,9...)
+  let pos = 0;
+  for (let i=0;i<letterPairs.length;i++) {
+    withNoise.push({ pair: letterPairs[i], noise: false });
+    realCount++;
+    pos++;
+    if (realCount === insertAfter) {
+      const np = getNoisePair();
+      withNoise.push({ pair: np, noise: true });
+      noisePositions.push(withNoise.length - 1);
+      realCount = 0;
+      pos++;
+      insertAfter = 2;
+    }
+  }
+
+  const finalStr = withNoise.map(x=>x.pair).join('');
+
+  // Render steps
+  const stepsEl = document.getElementById('steps-enc');
+  const showSteps = document.getElementById('toggle-enc').classList.contains('on');
+
+  stepsEl.innerHTML = `
+    <div class="step-row"><div class="step-label">STEP 1 — CLEAN</div><div class="step-value">${clean}</div></div>
+    <div class="step-row"><div class="step-label">STEP 2 — J→I</div><div class="step-value">${noJ}</div></div>
+    <div class="step-row"><div class="step-label">STEP 3 — COORDS</div><div class="step-value">${coords.join(' ')}</div></div>
+    <div class="step-row"><div class="step-label">STEP 4 — PAIRS</div><div class="step-value">${letterPairs.join(' ')}</div></div>
+    <div class="step-row"><div class="step-label">STEP 5 — NOISE</div><div class="step-value">${withNoise.map(x=>x.noise?`<span class="noise-pair">${x.pair}</span>`:`<span class="real-pair">${x.pair}</span>`).join(' ')}</div></div>
+    <div class="step-row"><div class="step-label">STEP 6 — OUTPUT</div><div class="step-value" style="color:var(--green);letter-spacing:2px;">${finalStr}</div></div>
+  `;
+
+  // Output
+  const outEl = document.getElementById('output-enc');
+  outEl.classList.remove('empty');
+  outEl.innerHTML = finalStr + '<button class="copy-btn" onclick="copyOutput(\'output-enc\')">COPY</button>';
+
+  // Highlight grid letters
+  renderGrid(gridData, [...new Set(noJ.split(''))]);
+}
+
+// ===================== DECRYPT =====================
+function decrypt() {
+  const kw = document.getElementById('keyword').value.trim();
+  const msg = document.getElementById('ciphertext').value.trim().toUpperCase().replace(/[^A-Z]/g,'');
+  if (!kw) { document.getElementById('keyword-error').classList.add('visible'); return; }
+  document.getElementById('keyword-error').classList.remove('visible');
+  if (!msg) return;
+
+  const gridData = buildGrid(kw);
+  const letters = gridData.letters;
+
+  // Step 1: split into pairs
+  const allPairs = msg.match(/.{1,2}/g) || [];
+  // Step 2: remove noise — every 3rd pair
+  const realPairs = [];
+  const annotated = allPairs.map((pair, idx) => {
+    const isNoise = (idx + 1) % 3 === 0;
+    if (!isNoise) realPairs.push(pair);
+    return { pair, noise: isNoise };
+  });
+
+  // Step 3: letter to number
+  const numPairs = realPairs.map(pair => {
+    const d1 = LETTER_TO_NUM[pair[0]];
+    const d2 = LETTER_TO_NUM[pair[1]];
+    if (!d1 || !d2) return null;
+    return `${d1}${d2}`;
+  }).filter(Boolean);
+
+  // Step 4: decode
+  const decoded = numPairs.map(pair => {
+    const r = parseInt(pair[0]);
+    const c = parseInt(pair[1]);
+    return getLetter(r, c, letters) || '?';
+  }).join('');
+
+  // Steps
+  const stepsEl = document.getElementById('steps-dec');
+  stepsEl.innerHTML = `
+    <div class="step-row"><div class="step-label">STEP 1 — SPLIT</div><div class="step-value">${allPairs.join(' ')}</div></div>
+    <div class="step-row"><div class="step-label">STEP 2 — DE-NOISE</div><div class="step-value">${annotated.map(x=>x.noise?`<span class="noise-pair">${x.pair}</span>`:`<span class="real-pair">${x.pair}</span>`).join(' ')}</div></div>
+    <div class="step-row"><div class="step-label">STEP 3 — NUMBERS</div><div class="step-value">${numPairs.join(' ')}</div></div>
+    <div class="step-row"><div class="step-label">STEP 4 — DECODED</div><div class="step-value" style="color:var(--green);letter-spacing:2px;">${decoded}</div></div>
+  `;
+
+  const outEl = document.getElementById('output-dec');
+  outEl.classList.remove('empty');
+  outEl.textContent = decoded;
+
+  renderGrid(gridData);
+}
+
+// ===================== UI HELPERS =====================
+function switchTab(mode) {
+  document.getElementById('section-enc').style.display = mode==='enc' ? '' : 'none';
+  document.getElementById('section-dec').style.display = mode==='dec' ? '' : 'none';
+  document.getElementById('tab-enc').classList.toggle('active', mode==='enc');
+  document.getElementById('tab-dec').classList.toggle('active', mode==='dec');
+}
+
+let showSteps = { enc: false, dec: false };
+
+function toggleSteps(mode) {
+  showSteps[mode] = !showSteps[mode];
+  const toggle = document.getElementById(`toggle-${mode}`);
+  const trace = document.getElementById(`steps-${mode}`);
+  toggle.classList.toggle('on', showSteps[mode]);
+  trace.classList.toggle('visible', showSteps[mode]);
+}
+
+function clearAll(mode) {
+  if (mode==='enc') {
+    document.getElementById('plaintext').value = '';
+    const o = document.getElementById('output-enc');
+    o.classList.add('empty');
+    o.innerHTML = '— AWAITING INPUT —<button class="copy-btn" onclick="copyOutput(\'output-enc\')" style="display:none">COPY</button>';
+    document.getElementById('steps-enc').innerHTML = '';
+  } else {
+    document.getElementById('ciphertext').value = '';
+    const o = document.getElementById('output-dec');
+    o.classList.add('empty');
+    o.textContent = '— AWAITING INPUT —';
+    document.getElementById('steps-dec').innerHTML = '';
+  }
+}
+
+function copyOutput(id) {
+  const el = document.getElementById(id);
+  const text = el.textContent.replace('COPY','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = el.querySelector('.copy-btn');
+    if (btn) { btn.textContent = 'COPIED!'; setTimeout(()=>btn.textContent='COPY', 1500); }
+  });
+}
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    String(now.getHours()).padStart(2,'0') + ':' +
+    String(now.getMinutes()).padStart(2,'0') + ':' +
+    String(now.getSeconds()).padStart(2,'0');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Init
+window.addEventListener('load', () => {
+  const kw = document.getElementById('keyword').value;
+  if (kw) {
+    const gridData = buildGrid(kw);
+    document.getElementById('keyword-clean').value = gridData.keyword;
+    renderGrid(gridData);
+  }
+});
+</script>
+</body>
+</html>

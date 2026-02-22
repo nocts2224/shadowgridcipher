@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SHADOWGRID CIPHER</title>
+  
+  <link rel="icon" type="image/png" href="assets/hacker.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<header>
+  <div class="logo">SHADOW<span>GRID</span> CIPHER</div>
+  <div class="status-bar">
+    <span><span class="status-dot"></span>SYSTEM ONLINE</span>
+    <span>PROTOCOL: ACTIVE</span>
+    <span id="clock">--:--:--</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ==================== CONFIG PANEL ==================== -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="bracket">[</span> CIPHER CONFIGURATION <span class="bracket">]</span>
+    </div>
+    <div class="panel-body">
+      <div class="config-row">
+
+        <div>
+          <label for="keyword">SECRET KEYWORD</label>
+          <input
+            type="text"
+            id="keyword"
+            placeholder="PHANTOM"
+            value="PHANTOM"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <div class="error-msg" id="keyword-error">KEYWORD REQUIRED</div>
+        </div>
+
+        <div>
+          <label for="keyword-clean">KEYWORD (DEDUPLICATED)</label>
+          <input type="text" id="keyword-clean" readonly placeholder="—" style="opacity:0.7">
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== GRID PANEL ==================== -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="bracket">[</span> CIPHER GRID — 5×5 POLYBIUS SQUARE <span class="bracket">]</span>
+    </div>
+    <div class="panel-body">
+      <div class="grid-section">
+
+        <!-- Grid + conversion table -->
+        <div>
+          <div id="cipher-grid" class="cipher-grid"></div>
+
+          <div style="margin-top:18px;">
+            <label style="margin-bottom:10px;">NUMBER → LETTER SUBSTITUTION</label>
+            <div class="conversion-table">
+              <div class="conv-item"><span class="conv-num">1</span><span class="conv-arrow">→</span><span class="conv-letter">K</span></div>
+              <div class="conv-item"><span class="conv-num">2</span><span class="conv-arrow">→</span><span class="conv-letter">R</span></div>
+              <div class="conv-item"><span class="conv-num">3</span><span class="conv-arrow">→</span><span class="conv-letter">X</span></div>
+              <div class="conv-item"><span class="conv-num">4</span><span class="conv-arrow">→</span><span class="conv-letter">M</span></div>
+              <div class="conv-item"><span class="conv-num">5</span><span class="conv-arrow">→</span><span class="conv-letter">Q</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar info (populated by JS) -->
+        <div class="grid-info" id="grid-info">
+          Build a keyword to generate the grid.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ENCRYPT / DECRYPT PANEL ==================== -->
+  <div class="panel">
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" id="tab-enc" onclick="switchTab('enc')">⬡ ENCRYPT</button>
+      <button class="tab"        id="tab-dec" onclick="switchTab('dec')">⬡ DECRYPT</button>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- ---- ENCRYPT SECTION ---- -->
+      <div id="section-enc">
+
+        <label for="plaintext">PLAINTEXT MESSAGE</label>
+        <textarea id="plaintext" placeholder="Enter your message..." spellcheck="false"></textarea>
+
+        <div class="action-row">
+          <button class="btn"          onclick="encrypt()">ENCRYPT MESSAGE</button>
+          <button class="btn danger"   onclick="clearAll('enc')">CLEAR</button>
+          <label class="show-steps-toggle" onclick="toggleSteps('enc')">
+            SHOW STEPS <div class="toggle" id="toggle-enc"></div>
+          </label>
+        </div>
+
+        <!-- Step-by-step trace (hidden by default) -->
+        <div class="steps-trace" id="steps-enc"></div>
+
+        <div style="margin-top:20px;">
+          <label>ENCRYPTED OUTPUT</label>
+          <div class="output-box empty" id="output-enc">
+            — AWAITING INPUT —
+            <button class="copy-btn" onclick="copyOutput('output-enc')" style="display:none">COPY</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ---- DECRYPT SECTION ---- -->
+      <div id="section-dec" style="display:none">
+
+        <label for="ciphertext">CIPHERTEXT MESSAGE</label>
+        <textarea
+          id="ciphertext"
+          placeholder="Enter encrypted message..."
+          spellcheck="false"
+          style="text-transform:uppercase;letter-spacing:2px;"
+        ></textarea>
+
+        <div class="action-row">
+          <button class="btn"        onclick="decrypt()">DECRYPT MESSAGE</button>
+          <button class="btn danger" onclick="clearAll('dec')">CLEAR</button>
+          <label class="show-steps-toggle" onclick="toggleSteps('dec')">
+            SHOW STEPS <div class="toggle" id="toggle-dec"></div>
+          </label>
+        </div>
+
+        <!-- Step-by-step trace (hidden by default) -->
+        <div class="steps-trace" id="steps-dec"></div>
+
+        <div style="margin-top:20px;">
+          <label>DECRYPTED OUTPUT</label>
+          <div class="output-box empty" id="output-dec">
+            — AWAITING INPUT —
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- JavaScript -->
+<script src="script.js"></script>
+
+</body>
+</html>

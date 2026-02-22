@@ -1,0 +1,140 @@
+Simple Spy Inspired Cipher Guide (ShadowGrid Cipher)
+
+This is a secret message system where letters turn into coded pairs.
+
+Both people must share the same secret keyword.
+
+---
+
+STEP 1 — Pick a Secret Word 
+
+Example:
+
+PHANTOM
+
+Both sender and receiver must know this word.
+
+---
+
+STEP 2 — Make the Letter Grid 
+
+Write the keyword first.
+
+Then fill the rest of the alphabet.
+
+Remove duplicate letters.
+
+Combine I and J.
+
+Example:
+
+P H A N T
+O M B C D
+E F G I K
+L Q R S U
+V W X Y Z
+
+---
+
+STEP 3 — Turn Letters Into Numbers 
+
+Each letter becomes:
+
+Row Number + Column Number
+
+Example:
+
+H = Row 1 Column 2 = 12
+E = Row 3 Column 1 = 31
+L = Row 4 Column 1 = 41
+
+HELLO becomes:
+
+12 31 41 41 21
+
+---
+
+STEP 4 — Turn Numbers Into Letters 
+
+Use this code:
+
+1 = K
+2 = R
+3 = X
+4 = M
+5 = Q
+
+Example:
+
+12 → KR
+31 → XK
+41 → MK
+
+HELLO becomes:
+
+KR XK MK MK RK
+
+---
+
+STEP 5 — Add Fake Codes 
+
+Add fake pairs to confuse people.
+
+Rule:
+
+Every 3rd pair is fake.
+
+Example:
+
+KR XK ZZ MK MK AA RK
+
+ZZ and AA are fake.
+
+---
+
+SENDING A MESSAGE 
+
+1. Remove spaces
+2. Turn letters into numbers
+3. Turn numbers into letters
+4. Add fake codes
+
+---
+
+READING A MESSAGE 
+
+1. Split into pairs
+
+Example:
+
+KR XK ZZ MK MK AA RK
+
+2. Remove fake pairs
+
+Remove every 3rd pair:
+
+KR XK MK MK RK
+
+3. Convert back to numbers
+
+KR → 12
+XK → 31
+
+4. Use the grid
+
+Result:
+
+HELLO
+
+---
+
+SECRET RULES 
+
+Both people must know:
+
+• The secret word
+• The grid
+• The number code
+• The fake code rule
+
+Without these, the message stays secret.
