@@ -1,3 +1,36 @@
+Method Used
+
+The ShadowGrid Cipher is a custom substitution cipher that converts letters into coded pairs through a multi-stage transformation process. The cipher is based on a keyword-generated letter grid, where each letter is assigned a unique position defined by its row and column. This positional system ensures that each letter can be consistently represented as a pair of numbers. The numerical values are then converted into letter pairs using a predefined digit-substitution scheme, creating a second layer of encoding. To further obscure the message, non-meaningful code pairs may be inserted at fixed intervals according to a shared rule. Although the cipher is not intended for modern cryptographic security, it demonstrates the principles of key-based encryption, layered transformation, and message obfuscation.
+
+Encryption Process
+
+To encrypt a message, both the sender and receiver must first agree on a secret keyword. The keyword is used to construct a 5×5 letter grid by writing the keyword first and then filling in the remaining letters of the alphabet while removing duplicates. The letters I and J are treated as a single character so that the alphabet fits within the grid.
+
+Once the grid is created, the plaintext message is prepared by removing spaces and converting all letters to uppercase. Each letter is then located within the grid and replaced with its corresponding row and column numbers. This produces a sequence of two-digit numerical values representing the message.
+
+Afterward, each digit in the numerical pairs is replaced according to a fixed digit-to-letter substitution system. For example:
+
+1 → K
+2 → R
+3 → X
+4 → M
+5 → Q
+
+Each two-digit number is therefore converted into a two-letter code pair, forming the encoded message.
+
+As a final step, dummy code pairs may be inserted into the message at regular intervals according to a predetermined rule, such as inserting a fake pair after every two real pairs. These dummy pairs do not correspond to any actual letters and serve only to make the encoded message more difficult to analyze.
+
+Decryption Process
+
+Decryption requires knowledge of the same keyword, grid arrangement, substitution scheme, and dummy insertion rule used during encryption.
+
+The encoded message is first separated into two-letter code pairs. Any dummy pairs are then removed according to the agreed insertion pattern, leaving only the meaningful code pairs.
+
+Each remaining letter pair is converted back into numerical form by reversing the digit-substitution scheme. The resulting number pairs represent row and column coordinates within the letter grid.
+
+Finally, each coordinate pair is located in the grid to recover the corresponding letter. When all pairs have been translated, the original plaintext message is reconstructed.
+
+
 Simple Spy Inspired Cipher Guide (ShadowGrid Cipher)
 
 This is a secret message system where letters turn into coded pairs.
